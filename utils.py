@@ -1,6 +1,7 @@
 import logging
 from sys import stdout
 
+from telebot import types
 
 LOG_LEVEL = logging.DEBUG
 
@@ -23,7 +24,10 @@ def log_decor(logger: logging.Logger):
     def actual_log_decor(func_handler):
 
         def print_simple_log(*args, **kwargs):
-            logger.debug(f"{func_handler.__name__} has been called! Message: {args[0].text}")
+            if isinstance(args[0], types.Message):
+                logger.debug(f"{func_handler.__name__} has been called! Message: {args[0].text}")
+            elif isinstance(args[0], types.CallbackQuery):
+                logger.debug(f"{func_handler.__name__} has been called! Callback data: {args[0].data}")
             return func_handler(*args, **kwargs)
 
         return print_simple_log
