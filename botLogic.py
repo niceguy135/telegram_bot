@@ -19,19 +19,20 @@ start_buttons = {
 
 @bot.message_handler(commands=['start'])
 @log_decor(logger=LOGGER)
-def send_welcome(message):
+def send_menu(message):
 
     markup = telebot.types.InlineKeyboardMarkup()
     buttons = []
 
     for but_text, value in start_buttons.items():
+        print(but_text, value)
         buttons.append(
             telebot.types.InlineKeyboardButton(but_text, callback_data=value)
         )
 
     markup.add(*buttons)
-    bot.send_message(message.chat.id, "Чтобы вы хотели узнать?", reply_markup=markup)
-
+    with open(CUR_DIR.joinpath("bot.png"), "rb") as photo:
+        bot.send_photo(message.chat.id, photo=photo, caption="Чтобы вы хотели узнать?", reply_markup=markup)
 
 @bot.message_handler(commands=['cur_weather'])
 @log_decor(logger=LOGGER)
@@ -45,16 +46,36 @@ def cur_weather_handler(message):
 @log_decor(logger=LOGGER)
 def call_api_weather(message: telebot.types.Message):
 
-    print(message.text)
-
-    res, weather = get_cur_weather(message.text)
+    city = message.text.capitalize()
+    res, weather = get_cur_weather(city)
     if not res:
         res_text = f"Что-то пошло не так! Причина: {weather['error']['message']}"
     else:
         res_weather = process_json_weather(weather)
-        res_text = f"Вот текущая погода в городе {message.text}\n" + res_weather
+        res_text = f"Вот текущая погода в городе {city}\n" + res_weather
 
-    send_msg = bot.send_message(message.chat.id, res_text)
+    bot.send_message(message.chat.id, res_text)
+
+    markup = telebot.types.InlineKeyboardMarkup()
+    markup.add(
+        telebot.types.InlineKeyboardButton(
+            "Сделать новый запрос", callback_data="cur_weather"
+        ),
+        telebot.types.InlineKeyboardButton(
+            "Вернуться в меню", callback_data="start"
+        )
+    )
+    bot.send_message(message.chat.id, "Что-то еще?", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda msg: True)
+def button_query_handler(callback: telebot.types.CallbackQuery):
+    # bot.reply_to(callback.message, f"Command query: {callback.message.text}")
+    match callback.data:
+        case "cur_weather":
+            cur_weather_handler(callback.message)
+        case "start":
+            send_menu(callback.message)
 
 
 @bot.message_handler(func=lambda msg: True)
