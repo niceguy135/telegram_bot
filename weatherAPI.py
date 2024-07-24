@@ -35,8 +35,6 @@ def get_cur_weather(city: str, aqi=False) -> tuple[bool, dict]:
         ]
     )
 
-    print(res.request.url)
-
     return True if res.ok else False, res.json()
 
 

@@ -25,7 +25,6 @@ def send_menu(message):
     buttons = []
 
     for but_text, value in start_buttons.items():
-        print(but_text, value)
         buttons.append(
             telebot.types.InlineKeyboardButton(but_text, callback_data=value)
         )
