@@ -12,28 +12,28 @@ LOGGER = BotLogging.get_logger()
 
 
 bot = telebot.TeleBot(TOKEN)
-start_buttons = {
-    "Текущая погода": "cur_weather"
-}
+start_buttons = [
+    "Текущая погода"
+]
 
 
 @bot.message_handler(commands=['start'])
+@bot.message_handler(func=lambda mes: mes.text == "В меню")
 @log_decor(logger=LOGGER)
 def send_menu(message):
 
-    markup = telebot.types.InlineKeyboardMarkup()
-    buttons = []
+    markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    for but_text, value in start_buttons.items():
-        buttons.append(
-            telebot.types.InlineKeyboardButton(but_text, callback_data=value)
+    for but_text in start_buttons:
+        markup.add(
+            telebot.types.KeyboardButton(but_text)
         )
 
-    markup.add(*buttons)
     with open(CUR_DIR.joinpath("bot.png"), "rb") as photo:
         bot.send_photo(message.chat.id, photo=photo, caption="Чтобы вы хотели узнать?", reply_markup=markup)
 
-@bot.message_handler(commands=['cur_weather'])
+
+@bot.message_handler(func=lambda mes: mes.text in ["Текущая погода", "Новый запрос погоды"])
 @log_decor(logger=LOGGER)
 def cur_weather_handler(message):
 
@@ -55,26 +55,16 @@ def call_api_weather(message: telebot.types.Message):
 
     bot.send_message(message.chat.id, res_text)
 
-    markup = telebot.types.InlineKeyboardMarkup()
+    markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(
         telebot.types.InlineKeyboardButton(
-            "Сделать новый запрос", callback_data="cur_weather"
+            "Новый запрос погоды"
         ),
         telebot.types.InlineKeyboardButton(
-            "Вернуться в меню", callback_data="start"
+            "В меню"
         )
     )
     bot.send_message(message.chat.id, "Что-то еще?", reply_markup=markup)
-
-
-@bot.callback_query_handler(func=lambda msg: True)
-def button_query_handler(callback: telebot.types.CallbackQuery):
-    # bot.reply_to(callback.message, f"Command query: {callback.message.text}")
-    match callback.data:
-        case "cur_weather":
-            cur_weather_handler(callback.message)
-        case "start":
-            send_menu(callback.message)
 
 
 @bot.message_handler(func=lambda msg: True)
