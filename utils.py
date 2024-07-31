@@ -1,4 +1,5 @@
 import logging
+import datetime
 from sys import stdout
 
 from telebot import types
@@ -34,3 +35,23 @@ def log_decor(logger: logging.Logger):
 
     return actual_log_decor
 
+
+def validate_data(unchecked_data: str) -> tuple[bool, str]:
+    """Валидирует дату, приходящую в формате YYYY-MM-DD HH:MM"""
+
+    try:
+        v_data, v_time = unchecked_data.split(" ")
+    except ValueError:
+        return False, "Между датой и временем должен стоять пробел!"
+
+    try:
+        datetime.date.fromisoformat(v_data)
+    except ValueError:
+        return False, "Неправильный формат даты! Должен быть ГГГГ-ММ-ДД"
+
+    try:
+        datetime.time.fromisoformat(v_time)
+    except ValueError:
+        return False, "Неправильный формат времени! Должен быть ЧЧ:ММ"
+
+    return True, ""
