@@ -10,3 +10,7 @@ class AbstractDatabase(ABC):
     @abstractmethod
     def init_start_record(self):
         """Создает базовую структуру записей для дальнейшей работы с ними"""
+
+    @abstractmethod
+    def create_todo_event(self):
+        """Создать запись о предстоящем событии"""

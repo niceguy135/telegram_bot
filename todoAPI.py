@@ -41,6 +41,9 @@ class RedisDatabase(AbstractDatabase):
     def init_start_record(self):
         pass
 
+    def create_todo_event(self):
+        pass
+
 
 class AnotherDatabase(AbstractDatabase):
 
@@ -50,6 +53,8 @@ class AnotherDatabase(AbstractDatabase):
     def init_start_record(self):
         pass
 
+    def create_todo_event(self):
+        pass
 
 def connect_to_db(db_type="redis") -> AbstractDatabase:
     """Фабрика объектов подключенных баз данных"""
