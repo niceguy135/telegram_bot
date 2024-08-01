@@ -1,4 +1,5 @@
 import logging
+from pathlib import PurePath
 
 import telebot
 
@@ -6,12 +7,13 @@ from utils import log_decor, validate_data
 from weatherAPI import get_cur_weather, process_json_weather
 from todoAPI import connect_to_db
 
+CUR_DIR = PurePath(__file__).parent
+
 start_buttons = [
     "Текущая погода",
     "Личный ежедневник",
 ]
 db = connect_to_db()
-cur_event = [None, None]
 
 
 def init_weather_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
@@ -64,7 +66,18 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
             telebot.types.KeyboardButton("Узнать о предстоящих событиях")
         )
 
-        bot.send_message(message.chat.id, "Что именно вы хотите сделать с ежидневником?", reply_markup=markup)
+        with open(CUR_DIR.joinpath("todo.png"), "rb") as photo:
+            bot.send_photo(message.chat.id, photo, "Меню Вашего ежедневника", reply_markup=markup)
+
+    @bot.message_handler(func=lambda mes: mes.text in ["Узнать о предстоящих событиях"])
+    @log_decor(logger=logger)
+    def get_todo_events(message):
+
+        user_events: list[str] = db.get_todo_events(message.from_user.id)
+        bot.send_message(message.chat.id, "Ваш список событий:")
+        for user_event in user_events:
+            bot.send_message(message.chat.id, user_event)
+        main_todo_handler(message)
 
     @bot.message_handler(func=lambda mes: mes.text in ["Занести новую запись"])
     @log_decor(logger=logger)
@@ -74,7 +87,6 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
         bot.register_next_step_handler(send_msg, enter_data)
 
     def enter_data(message):
-        global cur_event
 
         event_data: str = message.text
         result, msg = validate_data(event_data)
@@ -82,19 +94,16 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
             send_msg = bot.send_message(message.chat.id, msg + "\nПопробуйте еще раз!")
             bot.register_next_step_handler(send_msg, enter_data)
 
-        cur_event = [event_data, None]
-
         res_text = "Введите описание события"
         send_msg = bot.send_message(message.chat.id, res_text)
-        bot.register_next_step_handler(send_msg, enter_description)
+        bot.register_next_step_handler(send_msg, enter_description, event_data)
 
-    def enter_description(message):
-        global cur_event
+    def enter_description(message, event_data):
 
-        cur_event[1] = message.text
-        db.create_todo_event(cur_event)
+        event_desc = message.text
+        db.create_todo_event(event_data, event_desc)
 
-        res_text = f"Была создана запись на {cur_event[0]} --- {cur_event[1]}"
+        res_text = f"Была создана запись на {event_data} --- {event_desc}"
         bot.send_message(message.chat.id, res_text)
 
         markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
