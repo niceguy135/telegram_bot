@@ -19,5 +19,5 @@ class AbstractDatabase(ABC):
         """Создать запись о предстоящем событии"""
 
     @abstractmethod
-    def get_todo_events(self, user_id: int):
+    def get_todo_events(self, user_id: int) -> tuple[bool, list]:
         """Получить все записи пользователя из ежедневника"""

@@ -97,9 +97,14 @@ class RedisDatabase(AbstractDatabase):
 
         return True
 
+    def get_todo_events(self, user_id: int) -> tuple[bool, list]:
 
-    def get_todo_events(self, user_id: int):
-        pass
+        search_res = self.r.ft(self._ft_name).search(str(user_id))
+        if search_res.total == 0:
+            return False, []
+        db_user_id = search_res.docs[0].id
+
+        return True, self.r.json().get(db_user_id, ".user.todos")
 
 
 class AnotherDatabase(AbstractDatabase):

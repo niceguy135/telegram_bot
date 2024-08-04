@@ -73,10 +73,20 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
     @log_decor(logger=logger)
     def get_todo_events(message):
 
-        user_events: list[str] = db.get_todo_events(message.from_user.id)
-        bot.send_message(message.chat.id, "Ваш список событий:")
-        for user_event in user_events:
-            bot.send_message(message.chat.id, user_event)
+        res, user_events = db.get_todo_events(message.from_user.id)
+
+        if res is False:
+            res_text = "Неудалось найти вашу запись в базе данных! Перенаправляю вас в меню..."
+            bot.send_message(message.chat.id, res_text)
+        if len(user_events) == 0:
+            bot.send_message(message.chat.id, "У вас нет никаких событий в ежедневнике!")
+        else:
+            bot.send_message(message.chat.id, "Ваш список событий:")
+            for user_event in user_events:
+                event_desc = (f"Дата события: {user_event['date']} --- Время: {user_event['time']}\n\n"
+                              f"{user_event['description']}")
+                bot.send_message(message.chat.id, event_desc)
+
         main_todo_handler(message)
 
     @bot.message_handler(func=lambda mes: mes.text in ["Занести новую запись"])
