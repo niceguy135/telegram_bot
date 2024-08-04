@@ -40,18 +40,28 @@ def validate_data(unchecked_data: str) -> tuple[bool, str]:
     """Валидирует дату, приходящую в формате YYYY-MM-DD HH:MM"""
 
     try:
-        v_data, v_time = unchecked_data.split(" ")
+        v_date, v_time = unchecked_data.split(" ")
     except ValueError:
         return False, "Между датой и временем должен стоять пробел!"
 
     try:
-        datetime.date.fromisoformat(v_data)
+        datetime.date.fromisoformat(v_date)
     except ValueError:
-        return False, "Неправильный формат даты! Должен быть ГГГГ-ММ-ДД"
+        return False, "Неправильный формат даты! Должен быть ГГГГ-ММ-ДД (прим. 2024-08-02)"
 
     try:
         datetime.time.fromisoformat(v_time)
     except ValueError:
-        return False, "Неправильный формат времени! Должен быть ЧЧ:ММ"
+        return False, "Неправильный формат времени! Должен быть ЧЧ:ММ (прим. 06:12)"
 
     return True, ""
+
+
+def convert_date_n_time(unsplit_date: str) -> tuple[datetime.date, datetime.time]:
+    """Конвертирует строчную дату в объекты типа Дата и Время модуля datetime  возвращает их"""
+
+    v_date, v_time = unsplit_date.split(" ")
+    converted_date = datetime.date.fromisoformat(v_date)
+    converted_time = datetime.time.fromisoformat(v_time)
+
+    return converted_date, converted_time
