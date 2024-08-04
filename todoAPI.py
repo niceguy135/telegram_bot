@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date, time as dtime
 
 import redis
 from redis.commands.json.path import Path as RedisPath
@@ -28,7 +29,11 @@ class RedisDatabase(AbstractDatabase):
         "user_name": None,
         "todos": []
     }
-
+    _todo_sample = {
+        "data": "2000-01-01",
+        "time": "00:00:00",
+        "description": ""
+    }
     _schema = (
         TextField("$.user.user_id", as_name="user_id"),
         TextField("$.user.user_name", as_name="user_name"),
@@ -75,9 +80,23 @@ class RedisDatabase(AbstractDatabase):
         self.r.json().set(f"user:{RedisDatabase._user_counter}", RedisPath.root_path(), record)
 
         RedisDatabase._user_counter += 1
+        self.r.set("user:count", RedisDatabase._user_counter)
 
-    def create_todo_event(self, event_date: str, event_desc: str):
-        pass
+    def create_todo_event(self, user_id: int, event_date: date, event_time: dtime, event_desc: str) -> bool:
+
+        todo = self._todo_sample.copy()
+        search_res = self.r.ft(self._ft_name).search(str(user_id))
+        if search_res.total == 0:
+            return False
+        db_user_id = search_res.docs[0].id
+
+        todo["date"], todo["time"] = event_date.isoformat(), event_time.isoformat()
+        todo["description"] = event_desc
+
+        self.r.json().arrinsert(db_user_id, RedisPath.root_path() + "todos", -1, todo)
+
+        return True
+
 
     def get_todo_events(self, user_id: int):
         pass

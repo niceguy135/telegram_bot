@@ -3,7 +3,7 @@ from pathlib import PurePath
 
 import telebot
 
-from utils import log_decor, validate_data
+from utils import log_decor, validate_data, convert_date_n_time
 from weatherAPI import get_cur_weather, process_json_weather
 from todoAPI import connect_to_db
 
@@ -82,7 +82,7 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
     @bot.message_handler(func=lambda mes: mes.text in ["Занести новую запись"])
     @log_decor(logger=logger)
     def new_todo_handler(message):
-        res_text = "Введите дату события (в формате ДД/ММ ЧЧ:ММ)"
+        res_text = "Введите дату события (в формате ГГГГ-ММ-ДД ЧЧ:ММ)"
         send_msg = bot.send_message(message.chat.id, res_text)
         bot.register_next_step_handler(send_msg, enter_data)
 
@@ -98,10 +98,13 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
         send_msg = bot.send_message(message.chat.id, res_text)
         bot.register_next_step_handler(send_msg, enter_description, event_data)
 
-    def enter_description(message, event_data):
+    def enter_description(message: telebot.types.Message, event_data):
 
-        event_desc = message.text
-        db.create_todo_event(event_data, event_desc)
+        event_desc: str = message.text or "Без описания"
+        if not db.create_todo_event(message.from_user.id, *convert_date_n_time(event_desc), event_desc):
+            res_text = "Неудалось найти вашу запись в базе данных! Перенаправляю вас в меню..."
+            bot.send_message(message.chat.id, res_text)
+            main_todo_handler(message)
 
         res_text = f"Была создана запись на {event_data} --- {event_desc}"
         bot.send_message(message.chat.id, res_text)
