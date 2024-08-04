@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import date, time as dtime
 
 from telebot import types as tg_types
 
@@ -14,7 +15,7 @@ class AbstractDatabase(ABC):
         """Создает базовую структуру записей для дальнейшей работы с ними"""
 
     @abstractmethod
-    def create_todo_event(self, event_date: str, event_desc: str):
+    def create_todo_event(self, user_id: int, event_date: date, event_time: dtime, event_desc: str) -> bool:
         """Создать запись о предстоящем событии"""
 
     @abstractmethod
