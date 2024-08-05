@@ -111,7 +111,7 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
     def enter_description(message: telebot.types.Message, event_data):
 
         event_desc: str = message.text or "Без описания"
-        if not db.create_todo_event(message.from_user.id, *convert_date_n_time(event_desc), event_desc):
+        if not db.create_todo_event(message.from_user.id, *convert_date_n_time(event_data), event_desc):
             res_text = "Неудалось найти вашу запись в базе данных! Перенаправляю вас в меню..."
             bot.send_message(message.chat.id, res_text)
             main_todo_handler(message)

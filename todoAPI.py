@@ -35,8 +35,8 @@ class RedisDatabase(AbstractDatabase):
         "description": ""
     }
     _schema = (
-        TextField("$.user.user_id", as_name="user_id"),
-        TextField("$.user.user_name", as_name="user_name"),
+        TextField("$.user_id", as_name="user_id"),
+        TextField("$.user_name", as_name="user_name"),
     )
     _ft_name = "todoevents"
     _user_counter: int = None
@@ -68,9 +68,9 @@ class RedisDatabase(AbstractDatabase):
         self.r.close()
 
     def is_user_exist(self, user_id: int) -> bool:
+
         res = self.r.ft(self._ft_name).search(str(user_id))
-        if res.total == 0:
-            return False
+        return False if res.total == 0 else True
 
     def init_start_record(self, user_info: tg_types.User):
 
@@ -93,7 +93,7 @@ class RedisDatabase(AbstractDatabase):
         todo["date"], todo["time"] = event_date.isoformat(), event_time.isoformat()
         todo["description"] = event_desc
 
-        self.r.json().arrinsert(db_user_id, RedisPath.root_path() + "todos", -1, todo)
+        self.r.json().arrinsert(db_user_id, RedisPath.root_path() + "todos", 0, todo)
 
         return True
 
@@ -106,7 +106,7 @@ class RedisDatabase(AbstractDatabase):
             return False, []
         db_user_id = search_res.docs[0].id
 
-        return True, self.r.json().get(db_user_id, ".user.todos")
+        return True, self.r.json().get(db_user_id, ".todos")
 
 
 class AnotherDatabase(AbstractDatabase):
