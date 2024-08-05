@@ -13,6 +13,7 @@ LOGGER = BotLogging.get_logger()
 
 bot = telebot.TeleBot(TOKEN)
 botHandlers.init_weather_handlers(bot, LOGGER)
+botHandlers.init_todo_handlers(bot, LOGGER)
 
 
 @bot.message_handler(commands=['start'])

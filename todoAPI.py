@@ -57,11 +57,11 @@ class RedisDatabase(AbstractDatabase):
             self.r.ft(self._ft_name).dropindex()
         except redis.exceptions.ResponseError:
             pass
-        finally:
-            self.r.ft(self._ft_name).create_index(
-                self._schema,
-                definition=IndexDefinition(prefix=["user:"], index_type=IndexType.JSON)
-            )
+
+        self.r.ft(self._ft_name).create_index(
+            self._schema,
+            definition=IndexDefinition(prefix=["user:"], index_type=IndexType.JSON)
+        )
 
     def __del__(self):
         self.r.set("user:count", RedisDatabase._user_counter)
@@ -100,6 +100,8 @@ class RedisDatabase(AbstractDatabase):
     def get_todo_events(self, user_id: int) -> tuple[bool, list]:
 
         search_res = self.r.ft(self._ft_name).search(str(user_id))
+        print(user_id, self._ft_name)
+        print(search_res)
         if search_res.total == 0:
             return False, []
         db_user_id = search_res.docs[0].id

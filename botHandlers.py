@@ -78,7 +78,7 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
         if res is False:
             res_text = "Неудалось найти вашу запись в базе данных! Перенаправляю вас в меню..."
             bot.send_message(message.chat.id, res_text)
-        if len(user_events) == 0:
+        elif len(user_events) == 0:
             bot.send_message(message.chat.id, "У вас нет никаких событий в ежедневнике!")
         else:
             bot.send_message(message.chat.id, "Ваш список событий:")
