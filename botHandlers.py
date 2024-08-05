@@ -102,8 +102,9 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
         event_data: str = message.text
         result, msg = validate_data(event_data)
         if not result:
-            send_msg = bot.send_message(message.chat.id, msg + "\nПопробуйте еще раз!")
-            bot.register_next_step_handler(send_msg, enter_data)
+            bot.send_message(message.chat.id, msg + "\nПопробуйте еще раз!")
+            new_todo_handler(message)
+            return
 
         res_text = "Введите описание события"
         send_msg = bot.send_message(message.chat.id, res_text)
@@ -113,11 +114,12 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
 
         event_desc: str = message.text or "Без описания"
         if not db.create_todo_event(message.from_user.id, *convert_date_n_time(event_data), event_desc):
-            res_text = "Неудалось найти вашу запись в базе данных! Перенаправляю вас в меню..."
+            res_text = "Неудалось создать запись в базе данных! Перенаправляю вас в меню..."
             bot.send_message(message.chat.id, res_text)
             main_todo_handler(message)
+            return
 
-        res_text = f"Была создана запись на {event_data} --- {event_desc}"
+        res_text = f"Была создана запись!\nДата и время: {event_data}\n\n{event_desc}"
         bot.send_message(message.chat.id, res_text)
 
         markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -127,6 +129,9 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
             ),
             telebot.types.InlineKeyboardButton(
                 "В меню"
-            )
+            ),
+            telebot.types.InlineKeyboardButton(
+                "Занести новую запись"
+            ),
         )
         bot.send_message(message.chat.id, "Куда дальше?", reply_markup=markup)
