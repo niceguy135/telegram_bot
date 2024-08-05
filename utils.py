@@ -60,7 +60,6 @@ def validate_data(unchecked_data: str) -> tuple[bool, str]:
 def convert_date_n_time(unsplit_date: str) -> tuple[datetime.date, datetime.time]:
     """Конвертирует строчную дату в объекты типа Дата и Время модуля datetime  возвращает их"""
 
-    print(unsplit_date)
     v_date, v_time = unsplit_date.split(" ")
     converted_date = datetime.date.fromisoformat(v_date)
     converted_time = datetime.time.fromisoformat(v_time)
