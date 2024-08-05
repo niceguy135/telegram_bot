@@ -63,7 +63,8 @@ def init_todo_handlers(bot: telebot.TeleBot, logger=logging.Logger(__name__)):
         markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(
             telebot.types.KeyboardButton("Занести новую запись"),
-            telebot.types.KeyboardButton("Узнать о предстоящих событиях")
+            telebot.types.KeyboardButton("Узнать о предстоящих событиях"),
+            telebot.types.KeyboardButton("В меню")
         )
 
         with open(CUR_DIR.joinpath("todo.png"), "rb") as photo:
